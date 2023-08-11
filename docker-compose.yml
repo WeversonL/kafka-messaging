@@ -1,0 +1,95 @@
+version: '3.9'
+services:
+
+  kfk-producer:
+    build: ./kafka-producer/
+    container_name: kfk-producer
+    restart: always
+    ports:
+      - "8081:8081"
+    networks:
+      - broker-kafka
+    environment:
+      KAFKA_HOST: ${KAFKA_HOST}
+    mem_limit: 512m
+
+  kfk-consumer:
+    build: ./kafka-consumer/
+    container_name: kfk-consumer
+    depends_on:
+      - payments-db
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - broker-kafka
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      KAFKA_HOST: ${KAFKA_HOST}
+    mem_limit: 512m
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    networks:
+      - broker-kafka
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    mem_limit: 512m
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    networks:
+      - broker-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    mem_limit: 512m
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: kafdrop
+    networks:
+      - broker-kafka
+    depends_on:
+      - kafka
+    ports:
+      - "19000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29092
+    mem_limit: 512m
+
+  payments-db:
+    image: postgres:13.3
+    container_name: payments-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: kfk-payments
+    networks:
+      - broker-kafka
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    mem_limit: 512m
+
+volumes:
+  postgres_data:
+
+networks:
+  broker-kafka:
+    driver: bridge

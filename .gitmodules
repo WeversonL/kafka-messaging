@@ -1,0 +1,6 @@
+[submodule "kafka-producer"]
+	path = kafka-producer
+	url = https://github.com/WeversonL/kafka-producer.git
+[submodule "kafka-consumer"]
+	path = kafka-consumer
+	url = https://github.com/WeversonL/kafka-consumer.git
