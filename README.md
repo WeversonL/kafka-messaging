@@ -26,7 +26,7 @@ The idea of the projects is a simple payment queue, to integrate with Apache Kaf
 
 ## Get started
 
-In the project, an [example environment variables file](example.env) will be available. The project will start using it, if you want to change the database user and password, change the DB_USER and DB_PASS values
+In the project, an [example environment variables file](.env) will be available. The project will start using it, if you want to change the database user and password, change the DB_USER and DB_PASS values
 
 0. Clone git repository with modules
 
